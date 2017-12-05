@@ -1,0 +1,7 @@
+[package]
+name = "make"
+version = "0.1.0"
+authors = ["Michael Melanson <michael@michaelmelanson.net>"]
+
+[dependencies]
+clap = "*"
