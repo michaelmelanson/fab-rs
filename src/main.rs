@@ -18,27 +18,28 @@ fn main() {
             .long("file")
             .short("f")
             .alias("makefile")
-            .takes_value(true))
+            .takes_value(true)
+            .default_value("Makefile"))
         .arg(Arg::with_name("target")
             .help("Target to build")
+            .default_value("all")
             .index(1))
         .get_matches();
 
-    let file = args.value_of("file").unwrap_or("Makefile");
-    let target = args.value_of("target").unwrap_or("all").to_owned();
+    let file = args.value_of("file").unwrap();
+    let target = args.value_of("target").unwrap().to_owned();
 
     println!("make: Building target '{}' from '{}'", target, file);
 
-    let mut file = File::open(file.clone()).unwrap_or_else(|err| panic!("Could not open {:?}: {} (caused by {:?})", file, err.description(), err.cause()));
+    let mut file = File::open(file).unwrap_or_else(|err| panic!("Could not open {:?}: {} (caused by {:?})", file, err.description(), err.cause()));
 
     let mut contents = String::new();
     file.read_to_string(&mut contents).expect("failed to read from file");
 
     let makefile = makefile(contents).expect("failed to parse makefile");
 
-    let dependencies = resolve_dependencies(&makefile, &target);
-
-    for rule in dependencies {
+    let resolved = resolve_dependencies(&makefile, &target);
+    for rule in resolved {
         execute_rule(rule);
     }
 }
@@ -46,15 +47,15 @@ fn main() {
 fn resolve_dependencies<'a> (makefile: &'a makefile::Makefile, target: &'a String) -> Vec<&'a makefile::Rule> {
     let mut dependencies = vec![];
 
-    let mut open = vec![target.to_owned()];
-    let mut closed:Vec<String> = vec![];
+    let mut open = vec![target];
+    let mut closed = vec![];
 
     while let Some(name) = open.pop() {
         let rule = find_rule(makefile, &name);
 
         for dependency in &rule.dependencies {
             if !open.contains(&dependency) && !closed.contains(&dependency) {
-                open.insert(0, dependency.clone());
+                open.insert(0, dependency);
             }
         }
 
