@@ -1,5 +1,5 @@
 # fab-rs [![Build Status](https://travis-ci.org/michaelmelanson/fab-rs.svg?branch=master)](https://travis-ci.org/michaelmelanson/fab-rs)
-The fabulous, somewhat Make-compatible, fabricator of things.
+The fabulous, aspirationally Make-compatible, fabricator of things.
 
 # Status
 This is really early days. Here's the checklist of what's supported and what's not right now:
