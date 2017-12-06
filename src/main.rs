@@ -1,5 +1,3 @@
-#![feature(vec_resize_default)]
-
 extern crate clap;
 
 use clap::{Arg, App};

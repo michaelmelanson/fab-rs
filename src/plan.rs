@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use makefile::{Makefile, Rule, Target};
 
+#[derive(Clone)]
 pub struct Invocation<'a> {
   pub rule: &'a Rule,
   pub target: &'a Target
@@ -62,7 +63,7 @@ pub fn plan_execution<'a> (makefile: &'a Makefile, target: &'a Target) -> Plan<'
   }
   
   let mut phases: Vec<Phase> = Vec::new();
-  phases.resize_default((max_rank as usize) + 1);
+  phases.resize((max_rank as usize) + 1, Phase::new());
 
   for (target, rank) in rank_for_target.iter() {
     phases[*rank as usize].push(Invocation {
