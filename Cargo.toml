@@ -2,6 +2,9 @@
 name = "fab"
 version = "0.1.0"
 authors = ["Michael Melanson <michael@michaelmelanson.net>"]
+description = "The fabulous, aspirationally Make-compatible, fabricator of things."
+license = "MIT"
+homepage = "https://github.com/michaelmelanson/fab-rs"
 
 [dependencies]
 clap = "*"
