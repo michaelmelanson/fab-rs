@@ -32,7 +32,7 @@ fn main() {
     let file = args.value_of("file").unwrap();
     let target = args.value_of("target").unwrap().to_owned();
 
-    println!("make: Building target '{}' from '{}'", target, file);
+    println!("fab: Building target '{}' from '{}'", target, file);
 
     let mut file = File::open(file).unwrap_or_else(|err| panic!("Could not open {:?}: {} (caused by {:?})", file, err.description(), err.cause()));
 
@@ -52,23 +52,21 @@ fn main() {
 fn execute(invocation: &Invocation) {
     let target = invocation.target;
     let rule = invocation.rule;
-    println!("make: Building target '{}'", target);
+    println!("fab: Building target '{}'", target);
 
     for cmd in invocation.rule.commands.iter() {
         let cmd = cmd.replace("$@", &target)
                      .replace("$<", &rule.dependencies.join(" "));
 
-        println!("make: Running command '{}'", cmd);
         let status = Command::new("sh").arg("-c").arg(cmd.clone())
             .stdout(Stdio::inherit())
             .status().expect("failed to execute");
-        println!("make: Command completed '{}'", cmd);
 
         if !status.success() {
-            println!("make: Rule '{}' failed", rule.target);
+            println!("fab: Target '{}' failed to execute {:?}", target, cmd);
             std::process::exit(1);
         }
     }
-    println!("make: Finished rule '{}'", rule.target);
+    println!("fab: Finished rule '{}'", rule.target);
 
 }

@@ -7,19 +7,19 @@ build:
 test: comments dep echo envvar vars failure
 
 comments: build
-	target/debug/make -f examples/comments.makefile
+	target/debug/fab -f examples/comments.makefile
 
 dep: build
-	target/debug/make -f examples/dep.makefile
+	target/debug/fab -f examples/dep.makefile
 	
 echo: build
-	target/debug/make -f examples/echo.makefile
+	target/debug/fab -f examples/echo.makefile
 	
 envvar: build
-	target/debug/make -f examples/envvar.makefile
+	target/debug/fab -f examples/envvar.makefile
 	
 vars: build
-	target/debug/make -f examples/vars.makefile
+	target/debug/fab -f examples/vars.makefile
 	
 failure: build
-	target/debug/make -f examples/failure.makefile || exit 0
+	target/debug/fab -f examples/failure.makefile || exit 0

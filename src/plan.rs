@@ -26,8 +26,6 @@ pub fn plan_execution<'a> (makefile: &'a Makefile, target: &'a Target) -> Plan<'
   open.push(target);
 
   while let Some(name) = open.pop() {
-    println!("Considering target '{}'", name);
-
     let rule = rule_for_target.entry(name)
       .or_insert_with(|| find_rule(makefile, &name));
 
@@ -43,8 +41,6 @@ pub fn plan_execution<'a> (makefile: &'a Makefile, target: &'a Target) -> Plan<'
       }
     }
 
-    println!("Target is missing dependencies: {:?}", missing_dependencies);
-
     if missing_dependencies.is_empty() {
       rank_for_target.insert(name, rank);
       closed.push(name);
@@ -58,8 +54,6 @@ pub fn plan_execution<'a> (makefile: &'a Makefile, target: &'a Target) -> Plan<'
         open.push(dep);
       }
     }
-
-    println!("Open list is now: {:?}", open);
   }
   
   let mut phases: Vec<Phase> = Vec::new();
