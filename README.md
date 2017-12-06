@@ -9,6 +9,7 @@ This is really early days. Here's the checklist of what's supported and what's n
 - [x] Dependency resolution
 - [x] Environment variables passed into commands
 - [x] Basic special variable substitution (`$@`, `$<`)
+- [ ] Don't rebuild unmodified targets
 - [ ] Pattern rules
 - [ ] Variable definitions
 - [ ] Standard pattern rule library
