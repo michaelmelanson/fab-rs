@@ -1,6 +1,6 @@
 [package]
 name = "fab"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Michael Melanson <michael@michaelmelanson.net>"]
 description = "The fabulous, aspirationally Make-compatible, fabricator of things."
 license = "MIT"
