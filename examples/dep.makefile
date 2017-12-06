@@ -1,12 +1,12 @@
 
-all: c
+all: a
 	echo "Fourth"
 
-c: b a
+a: b c
 	echo "Third"
 
-b: a
-	echo "Second"
-
-a:
+b:
 	echo "First"
+
+c: b
+	echo "Second"

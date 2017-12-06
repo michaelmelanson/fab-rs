@@ -1,3 +1,5 @@
+#![feature(vec_resize_default)]
+
 extern crate clap;
 
 use clap::{Arg, App};
@@ -8,11 +10,14 @@ use std::process::{Command, Stdio};
 use std::error::Error;
 
 mod makefile;
+mod plan;
+
 use makefile::makefile;
+use plan::{plan_execution, Invocation};
 
 fn main() {
-    let args = App::new("make")
-        .about("Maker of things")
+    let args = App::new("fab")
+        .about("The fabulous, Make-compatible, fabricator of things.")
         .arg(Arg::with_name("file")
             .help("Read FILE as a makefile")
             .long("file")
@@ -38,51 +43,34 @@ fn main() {
 
     let makefile = makefile(contents).expect("failed to parse makefile");
 
-    let resolved = resolve_dependencies(&makefile, &target);
-    for rule in resolved {
-        execute_rule(rule);
-    }
-}
-
-fn resolve_dependencies<'a> (makefile: &'a makefile::Makefile, target: &'a String) -> Vec<&'a makefile::Rule> {
-    let mut dependencies = vec![];
-
-    let mut open = vec![target];
-    let mut closed = vec![];
-
-    while let Some(name) = open.pop() {
-        let rule = find_rule(makefile, &name);
-
-        for dependency in &rule.dependencies {
-            if !open.contains(&dependency) && !closed.contains(&dependency) {
-                open.insert(0, dependency);
-            }
+    let plan = plan_execution(&makefile, &target);
+    for phase in plan.phases {
+        for invocation in phase {
+            execute(&invocation);
         }
-
-        dependencies.insert(0, rule);
-        closed.push(name);
     }
-
-    return dependencies;
 }
 
-fn find_rule<'a> (makefile: &'a makefile::Makefile, target: &String) -> &'a makefile::Rule {
-    makefile.rules.iter()
-        .find(|r| r.target == *target)
-        .unwrap_or_else(|| panic!("No such rule {:?}", target))
-}
+fn execute(invocation: &Invocation) {
+    let target = invocation.target;
+    let rule = invocation.rule;
+    println!("make: Building target '{}'", target);
 
-fn execute_rule(rule: &makefile::Rule) {
-    for cmd in rule.commands.iter() {
-        let cmd = cmd.replace("$@", &rule.target)
+    for cmd in invocation.rule.commands.iter() {
+        let cmd = cmd.replace("$@", &target)
                      .replace("$<", &rule.dependencies.join(" "));
 
-        let status = Command::new("sh").arg("-c").arg(cmd)
+        println!("make: Running command '{}'", cmd);
+        let status = Command::new("sh").arg("-c").arg(cmd.clone())
             .stdout(Stdio::inherit())
             .status().expect("failed to execute");
+        println!("make: Command completed '{}'", cmd);
 
         if !status.success() {
-            println!("Command failed with exit code {}", status);
+            println!("make: Rule '{}' failed", rule.target);
+            std::process::exit(1);
         }
     }
+    println!("make: Finished rule '{}'", rule.target);
+
 }

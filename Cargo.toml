@@ -1,5 +1,5 @@
 [package]
-name = "make"
+name = "fab"
 version = "0.1.0"
 authors = ["Michael Melanson <michael@michaelmelanson.net>"]
 

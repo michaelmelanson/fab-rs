@@ -1,14 +1,17 @@
 use std::str;
 
+pub type Target = String;
+pub type Command = String;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Rule {
-  pub target: String,
-  pub dependencies: Vec<String>,
-  pub commands: Vec<String>
+  pub target: Target,
+  pub dependencies: Vec<Target>,
+  pub commands: Vec<Command>
 }
 
 impl Rule {
-  fn new(target: String, dependencies: Vec<String>, commands: Vec<String>) -> Rule {
+  fn new(target: String, dependencies: Vec<Target>, commands: Vec<Command>) -> Rule {
     Rule {
       target: target,
       dependencies: dependencies,
@@ -73,14 +76,16 @@ pub fn makefile(input: String) -> Result<Makefile, ParseError> {
       MakefileLine::Command(command) => {
         let last_index = makefile.rules.len() - 1;
         if let Some(rule) = makefile.rules.get_mut(last_index) {
-          rule.commands.push(String::from(command));
+          if command.len() > 0 {
+            rule.commands.push(Command::from(command));
+          }
         } else {
           return Err(ParseError::CommandOutsideOfRule)
         }
       }
 
       MakefileLine::RuleDefinition(target, dependencies) => {
-        makefile.rules.push(Rule::new(String::from(target), dependencies, Vec::new()));
+        makefile.rules.push(Rule::new(Target::from(target), dependencies, Vec::new()));
       }
     }
   }
@@ -118,13 +123,18 @@ mod tests {
       Rule::new("a".to_owned(), vec![], vec!["foo".to_owned()])
     ])));
   }
-  
-
 
   #[test]
   fn makefile_with_commands_test() {
     assert_eq!(makefile("foo: bar baz\n\tone\n\ttwo\n".to_owned()), Ok(Makefile::new(vec![
       Rule::new("foo".to_owned(), vec!["bar".to_owned(), "baz".to_owned()], vec!["one".to_owned(), "two".to_owned()])
+    ])));
+  }
+
+  #[test]
+  fn makefile_commands_with_blank_lines_test() {
+    assert_eq!(makefile("foo:\n\tone\n\n\ttwo\n\t\n\tthree\n".to_owned()), Ok(Makefile::new(vec![
+      Rule::new("foo".to_owned(), vec![], vec!["one".to_owned(), "two".to_owned(), "three".to_owned()])
     ])));
   }
 }
