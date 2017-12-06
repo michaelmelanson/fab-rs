@@ -12,6 +12,7 @@ This is really early days. Here's the checklist of what's supported and what's n
 - [ ] Pattern rules
 - [ ] Variable definitions
 - [ ] Standard pattern rule library
+- [ ] Parallel builds
 - [ ] ...
 
 # Usage
