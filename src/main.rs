@@ -17,7 +17,7 @@ use plan::{plan_execution, Invocation};
 
 fn main() {
     let args = App::new("fab")
-        .about("The fabulous, Make-compatible, fabricator of things.")
+        .about("The fabulous, somewhat Make-compatible, fabricator of things.")
         .arg(Arg::with_name("file")
             .help("Read FILE as a makefile")
             .long("file")
