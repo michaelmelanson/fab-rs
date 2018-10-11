@@ -1,13 +1,27 @@
-use std::str;
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Target {
-    pub name: String,
+pub struct Target(String);
+
+impl Target {
+    pub fn named<T: Into<String>>(name: T) -> Target {
+        Target(name.into())
+    }
+
+    pub fn name(&self) -> &String {
+        &self.0
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Command {
-    pub rule: String,
+pub struct Command(String);
+
+impl Command {
+    pub fn with<T: Into<String>>(command: T) -> Command {
+        Command(command.into())
+    }
+
+    pub fn text(&self) -> &String {
+        &self.0
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -51,11 +65,9 @@ pub enum ParseError {
     CommandOutsideOfRule,
 }
 
-fn parse_line(line: &str) -> Result<MakefileLine, ParseError> {
-    let original = line;
-
+fn parse_line(original: &String) -> Result<MakefileLine, ParseError> {
     // Strip off comments
-    let line: &str = line.split_terminator('#').next().unwrap_or("");
+    let line: String = original.split('#').next().unwrap_or("").to_owned().clone();
 
     if line.chars().nth(0) == Some('\t') {
         Ok(MakefileLine::Command(String::from(line.trim())))
@@ -78,18 +90,18 @@ fn parse_line(line: &str) -> Result<MakefileLine, ParseError> {
     }
 }
 
-pub fn makefile(input: &str) -> Result<Makefile, ParseError> {
+pub fn parse_makefile(input: &String) -> Result<Makefile, ParseError> {
     let mut makefile = Makefile::new(Vec::new());
 
     for line in input.lines() {
-        match parse_line(line)? {
+        match parse_line(&line.to_owned())? {
             MakefileLine::EmptyLine => {}
 
             MakefileLine::Command(command) => {
                 let last_index = makefile.rules.len() - 1;
                 if let Some(rule) = makefile.rules.get_mut(last_index) {
                     if !command.is_empty() {
-                        rule.commands.push(Command { rule: command });
+                        rule.commands.push(Command::with(command));
                     }
                 } else {
                     return Err(ParseError::CommandOutsideOfRule);
@@ -98,12 +110,11 @@ pub fn makefile(input: &str) -> Result<Makefile, ParseError> {
 
             MakefileLine::RuleDefinition(target, dependencies) => {
                 makefile.rules.push(Rule::new(
-                    Target { name: target },
+                    Target::named(target),
                     dependencies
                         .iter()
-                        .map(|dep| Target {
-                            name: dep.to_string(),
-                        }).collect::<Vec<Target>>(),
+                        .map(|dep| Target::named(dep.clone()))
+                        .collect::<Vec<Target>>(),
                     Vec::new(),
                 ));
             }
@@ -119,16 +130,19 @@ mod tests {
 
     #[test]
     fn makefile_empty_test() {
-        assert_eq!(makefile("".to_owned()), Ok(Makefile::new(Vec::new())));
+        assert_eq!(
+            parse_makefile(&"".to_owned()),
+            Ok(Makefile::new(Vec::new()))
+        );
     }
 
     #[test]
     fn makefile_one_rule_test() {
         assert_eq!(
-            makefile("all: build test".to_owned()),
+            parse_makefile(&"all: build test".to_owned()),
             Ok(Makefile::new(vec![Rule::new(
-                "all".to_owned(),
-                vec!["build".to_owned(), "test".to_owned()],
+                Target::named("all"),
+                vec![Target::named("build"), Target::named("test")],
                 vec![]
             )]))
         );
@@ -137,10 +151,10 @@ mod tests {
     #[test]
     fn makefile_blank_line_test() {
         assert_eq!(
-            makefile("\nall: build test\n".to_owned()),
+            parse_makefile(&"\nall: build test\n".to_owned()),
             Ok(Makefile::new(vec![Rule::new(
-                "all".to_owned(),
-                vec!["build".to_owned(), "test".to_owned()],
+                Target::named("all"),
+                vec![Target::named("build"), Target::named("test")],
                 vec![]
             )]))
         );
@@ -149,10 +163,10 @@ mod tests {
     #[test]
     fn makefile_with_multiple_rules_test() {
         assert_eq!(
-            makefile("all: a\n\na:\n\tfoo".to_owned()),
+            parse_makefile(&"all: a\n\na:\n\tfoo".to_owned()),
             Ok(Makefile::new(vec![
-                Rule::new("all".to_owned(), vec!["a".to_owned()], vec![]),
-                Rule::new("a".to_owned(), vec![], vec!["foo".to_owned()])
+                Rule::new(Target::named("all"), vec![Target::named("a")], vec![]),
+                Rule::new(Target::named("a"), vec![], vec![Command::with("foo")])
             ]))
         );
     }
@@ -160,11 +174,11 @@ mod tests {
     #[test]
     fn makefile_with_commands_test() {
         assert_eq!(
-            makefile("foo: bar baz\n\tone\n\ttwo\n".to_owned()),
+            parse_makefile(&"foo: bar baz\n\tone\n\ttwo\n".to_owned()),
             Ok(Makefile::new(vec![Rule::new(
-                "foo".to_owned(),
-                vec!["bar".to_owned(), "baz".to_owned()],
-                vec!["one".to_owned(), "two".to_owned()]
+                Target::named("foo"),
+                vec![Target::named("bar"), Target::named("baz")],
+                vec![Command::with("one"), Command::with("two")]
             )]))
         );
     }
@@ -172,11 +186,15 @@ mod tests {
     #[test]
     fn makefile_commands_with_blank_lines_test() {
         assert_eq!(
-            makefile("foo:\n\tone\n\n\ttwo\n\t\n\tthree\n".to_owned()),
+            parse_makefile(&"foo:\n\tone\n\n\ttwo\n\t\n\tthree\n".to_owned()),
             Ok(Makefile::new(vec![Rule::new(
-                "foo".to_owned(),
+                Target::named("foo"),
                 vec![],
-                vec!["one".to_owned(), "two".to_owned(), "three".to_owned()]
+                vec![
+                    Command::with("one"),
+                    Command::with("two"),
+                    Command::with("three")
+                ]
             )]))
         );
     }

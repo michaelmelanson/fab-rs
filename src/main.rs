@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 mod makefile;
 mod plan;
 
-use makefile::{makefile, Target};
+use makefile::{parse_makefile, Target};
 use plan::{plan_execution, Invocation};
 
 fn main() {
@@ -32,11 +32,9 @@ fn main() {
         ).get_matches();
 
     let file = args.value_of("file").unwrap();
-    let target = Target {
-        name: args.value_of("target").unwrap().to_owned(),
-    };
+    let target = Target::named(args.value_of("target").unwrap());
 
-    println!("fab: Building target '{}' from '{}'", target.name, file);
+    println!("fab: Building target '{}' from '{}'", target.name(), file);
 
     let mut file = File::open(file).unwrap_or_else(|err| {
         panic!(
@@ -51,9 +49,10 @@ fn main() {
     file.read_to_string(&mut contents)
         .expect("failed to read from file");
 
-    let makefile = makefile(&contents).expect("failed to parse makefile");
+    let makefile = parse_makefile(&contents).expect("failed to parse makefile");
 
     let plan = plan_execution(makefile.clone(), &target);
+    println!("fab: Executing plan: {:#?}", plan);
     for phase in plan.phases {
         for invocation in phase {
             execute(&invocation);
@@ -64,15 +63,15 @@ fn main() {
 fn execute(invocation: &Invocation) {
     let target = &invocation.target;
     let rule = &invocation.rule;
-    println!("fab: Building target '{}'", target.name);
+    println!("fab: Building target '{}'", target.name());
 
     for cmd in &invocation.rule.commands {
-        let cmd = cmd.rule.replace("$@", &target.name).replace(
+        let cmd = cmd.text().replace("$@", target.name()).replace(
             "$<",
             &rule
                 .dependencies
                 .iter()
-                .map(|t| t.name.clone())
+                .map(|t| t.name().clone())
                 .collect::<Vec<String>>()
                 .join(" "),
         );
@@ -85,9 +84,13 @@ fn execute(invocation: &Invocation) {
             .expect("failed to execute");
 
         if !status.success() {
-            println!("fab: Target '{}' failed to execute {:?}", target.name, cmd);
+            println!(
+                "fab: Target '{}' failed to execute {:?}",
+                target.name(),
+                cmd
+            );
             std::process::exit(1);
         }
     }
-    println!("fab: Finished rule '{}'", rule.target.name);
+    println!("fab: Finished rule '{}'", rule.target.name());
 }
