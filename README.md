@@ -1,4 +1,4 @@
-# fab-rs [![Rust](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml)]
+# fab-rs [![Rust](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml)
 The fabulous, aspirationally Make-compatible, fabricator of things.
 
 # Status
