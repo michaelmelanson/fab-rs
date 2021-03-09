@@ -1,4 +1,4 @@
-# fab-rs [![Build Status](https://travis-ci.org/michaelmelanson/fab-rs.svg?branch=master)](https://travis-ci.org/michaelmelanson/fab-rs) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=michaelmelanson/fab-rs)](https://dependabot.com)
+# fab-rs [![Rust](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/michaelmelanson/fab-rs/actions/workflows/rust.yml)]
 The fabulous, aspirationally Make-compatible, fabricator of things.
 
 # Status
