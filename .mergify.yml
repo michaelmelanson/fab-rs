@@ -1,0 +1,9 @@
+pull_request_rules:
+  - name: Automatically merge PRs
+    conditions:
+      - and:
+          - author=dependabot[bot]
+          - check-success=build
+    actions:
+      merge:
+        method: merge
