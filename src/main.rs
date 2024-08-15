@@ -1,11 +1,9 @@
-extern crate clap;
-
-use clap::{App, Arg};
+use clap::{arg, Arg};
 
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 mod makefile;
 mod plan;
@@ -14,25 +12,18 @@ use makefile::{parse_makefile, Target};
 use plan::{plan_execution, Invocation};
 
 fn main() {
-    let args = App::new("fab")
+    let args = clap::Command::new("fab")
         .about("The fabulous, somewhat Make-compatible, fabricator of things.")
+        .arg(arg!(-f --file <FILE> "Read FILE as a makefile").default_value("Makefile"))
         .arg(
-            Arg::with_name("file")
-                .help("Read FILE as a makefile")
-                .long("file")
-                .short("f")
-                .alias("makefile")
-                .takes_value(true)
-                .default_value("Makefile"),
-        ).arg(
-            Arg::with_name("target")
-                .help("Target to build")
-                .default_value("all")
-                .index(1),
-        ).get_matches();
+            Arg::new("target")
+                .help("The rule to build")
+                .default_value("all"),
+        )
+        .get_matches();
 
-    let file = args.value_of("file").unwrap();
-    let target = Target::named(args.value_of("target").unwrap());
+    let file = args.get_one::<String>("file").unwrap();
+    let target = Target::named(args.get_one::<String>("target").unwrap());
 
     println!("fab: Building target '{}' from '{}'", target.name(), file);
 
@@ -40,8 +31,8 @@ fn main() {
         panic!(
             "Could not open {:?}: {} (caused by {:?})",
             file,
-            err.description(),
-            err.cause()
+            err.to_string(),
+            err.source()
         )
     });
 
@@ -76,7 +67,7 @@ fn execute(invocation: &Invocation) {
                 .join(" "),
         );
 
-        let status = Command::new("sh")
+        let status = std::process::Command::new("sh")
             .arg("-c")
             .arg(cmd.clone())
             .stdout(Stdio::inherit())

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use makefile::{Makefile, Rule, Target};
+use crate::makefile::{Makefile, Rule, Target};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Invocation {
