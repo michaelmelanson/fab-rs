@@ -8,4 +8,4 @@ license = "MIT"
 homepage = "https://github.com/michaelmelanson/fab-rs"
 
 [dependencies]
-clap = "4.5"
+clap = "4.6"
